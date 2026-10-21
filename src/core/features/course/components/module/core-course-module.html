@@ -26,9 +26,9 @@
                                         [contextInstanceId]="module.id" [courseId]="module.course"
                                         [attr.aria-label]="module.handlerData.a11yTitle + ', ' + modNameTranslated" />
                                 </ng-template>
-                                @if (module.visible === 0 || module.uservisible === false) {
+                                <!-- @if (module.visible === 0 || module.uservisible === false) {
                                     <ion-icon name="fas-lock" [attr.aria-label]="'core.restricted' | translate" />
-                                }
+                                } -->
                                 @if (prefetchStatusIcon()) {
                                     <ion-icon [name]="prefetchStatusIcon()" color="success"
                                         [attr.aria-label]="(prefetchStatusText() || '') | translate" />
@@ -70,7 +70,7 @@
                                 }
 
                                 <!-- Button defined by the module handler. -->
-                                @if (module.handlerData.button) {
+                                @if (module.handlerData.button && module.modname !== 'url') {
                                     <ion-button fill="clear" class="core-module-button-more core-animate-show-hide"
                                         [hidden]="module.handlerData.button.hidden || module.handlerData.spinner"
                                         (click)="buttonClicked($event)"

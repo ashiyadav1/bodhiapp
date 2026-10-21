@@ -45,6 +45,7 @@ import { CoreModals } from '@services/overlays/modals';
 import { CoreAlerts } from '@services/overlays/alerts';
 import { Translate } from '@singletons';
 import { CoreSharedModule } from '@/core/shared.module';
+import { CorePlatform } from '@services/platform';
 
 /**
  * Page that allows playing a SCORM.
@@ -595,6 +596,40 @@ export default class AddonModScormPlayerPage implements OnInit, OnDestroy {
             data: { id: this.scorm.id, scoid: scoId, organization: this.organizationId, category: 'scorm' },
             url,
         });
+    }
+
+    /**
+     * SCORM iframe has been loaded.
+     *
+     * @param iframe Iframe element.
+     */
+    iframeLoaded(iframe: HTMLIFrameElement): void {
+        if (!CorePlatform.isIOS()) {
+            return;
+        }
+
+        // In iOS some SCORM players (e.g. iSpring) calculate their size using the screen size instead of the iframe size,
+        // so the content doesn't fit the iframe and part of it is hidden (e.g. the navigation buttons in landscape).
+        // Make the screen size match the iframe size and resize the player.
+        try {
+            const win = iframe.contentWindow;
+            if (!win) {
+                return;
+            }
+
+            Object.defineProperty(win.screen, 'width', {
+                configurable: true,
+                get: () => Math.min(win.innerWidth, win.innerHeight),
+            });
+            Object.defineProperty(win.screen, 'height', {
+                configurable: true,
+                get: () => Math.max(win.innerWidth, win.innerHeight),
+            });
+
+            win.dispatchEvent(new Event('resize'));
+        } catch {
+            // Cannot access the iframe content, ignore.
+        }
     }
 
     /**

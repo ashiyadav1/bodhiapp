@@ -188,6 +188,7 @@ export class CoreIframeComponent implements OnChanges, OnDestroy {
         }
 
         this.fullScreenInitialized = true;
+        this.updateFullHeight();
     }
 
     /**
@@ -346,6 +347,13 @@ export class CoreIframeComponent implements OnChanges, OnDestroy {
 
         document.body.classList.toggle('core-iframe-fullscreen', this.fullscreen);
 
+        if (this.fullscreen) {
+            // The fullscreen iframe is placed at the top of the content, make sure it's visible.
+            this.element.closest('ion-content')?.scrollToTop(0);
+        }
+
+        this.updateFullHeight();
+
         const iframe = this.iframe();
         if (notifyIframe && iframe) {
             iframe.contentWindow?.postMessage(
@@ -353,6 +361,15 @@ export class CoreIframeComponent implements OnChanges, OnDestroy {
                 '*',
             );
         }
+    }
+
+    /**
+     * When not in fullscreen, don't limit the iframe height to the screen so the whole content is scrolled with the page.
+     */
+    protected updateFullHeight(): void {
+        const enable = !this.fullscreen && (this.showFullscreenOnToolbar || this.autoFullscreenOnRotate);
+
+        this.element.classList.toggle('core-iframe-full-height', enable);
     }
 
     /**

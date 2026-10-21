@@ -1,10 +1,10 @@
 {
-    "name": "moodlemobile",
+    "name": "bodhi-medlearn",
     "version": "5.2.1",
-    "description": "The official app for Moodle.",
+    "description": "The official app for BodhiMEDLEARN.",
     "author": {
-        "name": "Moodle Pty Ltd.",
-        "email": "mobile@moodle.com"
+        "name": "BodhiMEDLEARN team",
+        "email": "mobile@bodhi.com"
     },
     "repository": {
         "type": "git",
@@ -146,6 +146,8 @@
         "angular-eslint": "20.7.0",
         "circular-dependency-plugin": "5.2.2",
         "concurrently": "9.2.1",
+        "cordova-browser": "^7.0.0",
+        "cordova-plugin-media-capture": "^6.0.0",
         "cordova-plugin-moodleapp": "file:cordova-plugin-moodleapp",
         "cross-env": "10.1.0",
         "es-check": "9.6.2",
@@ -182,7 +184,8 @@
     "cordova": {
         "platforms": [
             "android",
-            "ios"
+            "ios",
+            "browser"
         ],
         "plugins": {
             "@moodlehq/cordova-plugin-advanced-http": {

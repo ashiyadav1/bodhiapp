@@ -520,3 +520,18 @@ video::-webkit-media-text-track-display {
     clip: auto;
     white-space: normal;
 }
+// SCORM InAppBrowser khula ho tab app ka Previous/Next activity footer hide karo.
+body.scorm-iab-open {
+    core-course-module-navigation,
+    ion-row:has(> ion-col.core-course-module-navigation-arrow) {
+        visibility: hidden !important;
+    }
+}
+
+/* H5P fullscreen landscape scrolling */
+@media screen and (orientation: landscape) {
+    body.h5p-embed.h5p-resizing {
+        overflow: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+}

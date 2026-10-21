@@ -1,3 +1,13 @@
+@use "theme/globals" as *;
+
+.core-course-index-button {
+    --background: #{$core-course-index-selected-background};
+    --background-activated: #{$core-course-index-selected-background};
+    --background-focused: #{$core-course-index-selected-background};
+    --background-hover: #{$core-course-index-selected-background};
+    --color: var(--gray-900);
+}
+
 .core-course-section-nav-buttons {
     display: flex;
     justify-content: space-between;

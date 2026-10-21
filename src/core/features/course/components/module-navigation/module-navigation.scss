@@ -51,6 +51,14 @@
     height: 0 !important;
 }
 
+:host-context(body.core-iframe-fullscreen) {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10000;
+}
+
 :host-context(:root.dark) {
     --button-color: var(--gray-100);
 }

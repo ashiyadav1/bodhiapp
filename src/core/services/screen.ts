@@ -66,7 +66,7 @@ export class CoreScreenService {
 
     protected breakpointsSubject: BehaviorSubject<Record<Breakpoint, boolean>>;
     private _layoutObservable: Observable<CoreScreenLayout>;
-    private readonly _orientationSignal = signal<CoreScreenOrientation>(CoreScreenOrientation.PORTRAIT);
+    private readonly _orientationSignal = signal<CoreScreenOrientation>(this.getInitialOrientation());
 
     constructor() {
         this.breakpointsSubject = new BehaviorSubject(BREAKPOINT_NAMES.reduce((breakpoints, breakpoint) => ({
@@ -80,6 +80,22 @@ export class CoreScreenService {
         );
 
         this.initializeOrientation();
+    }
+
+    protected getInitialOrientation(): CoreScreenOrientation {
+        if (this.orientationDataExists() && screen.orientation?.type) {
+            return screen.orientation.type.startsWith(CoreScreenOrientation.LANDSCAPE)
+                ? CoreScreenOrientation.LANDSCAPE
+                : CoreScreenOrientation.PORTRAIT;
+        }
+
+        if (typeof window !== 'undefined' && window.matchMedia) {
+            return window.matchMedia('(orientation: landscape)').matches
+                ? CoreScreenOrientation.LANDSCAPE
+                : CoreScreenOrientation.PORTRAIT;
+        }
+
+        return CoreScreenOrientation.PORTRAIT;
     }
 
     get breakpoints(): Record<Breakpoint, boolean> {
@@ -107,14 +123,7 @@ export class CoreScreenService {
     }
 
     get orientation(): CoreScreenOrientation {
-        if (!this.orientationDataExists()) {
-            // Not initialized yet, assume portrait.
-            return CoreScreenOrientation.PORTRAIT;
-        }
-
-        return screen.orientation.type?.startsWith(CoreScreenOrientation.LANDSCAPE)
-            ? CoreScreenOrientation.LANDSCAPE
-            : CoreScreenOrientation.PORTRAIT;
+        return this.getInitialOrientation();
     }
 
     get orientationSignal(): Signal<CoreScreenOrientation> {

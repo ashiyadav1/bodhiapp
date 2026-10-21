@@ -13,11 +13,13 @@
     @if (initials) {
         @if (linkProfile) {
             <div class="userinitials" [attr.aria-label]="fullname" [title]="fullname" (ariaButtonClick)="gotoProfile($event)"
-                [attr.data-initials]="initials">
+                role="button">
+                <img class="core-user-avatar-fallback" src="assets/img/user-avatar.png" aria-hidden="true" alt="" />
             </div>
         } @else {
             <div class="userinitials" [attr.aria-label]="'core.pictureof' | translate:{$a: fullname}"
-                [title]="'core.pictureof' | translate:{$a: fullname}" role="img" [attr.data-initials]="initials" aria-hidden="true">
+                [title]="'core.pictureof' | translate:{$a: fullname}" role="img" aria-hidden="true">
+                <img class="core-user-avatar-fallback" src="assets/img/user-avatar.png" aria-hidden="true" alt="" />
             </div>
         }
     } @else {

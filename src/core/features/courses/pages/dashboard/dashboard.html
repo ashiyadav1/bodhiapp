@@ -21,10 +21,6 @@
             </ion-list>
         }
 
-        @if (hasSideBlocks) {
-            <core-block-side-blocks-button slot="fixed" contextLevel="user" [instanceId]="userId" />
-        }
-
         @if (!hasMainBlocks) {
             <core-empty-box icon="fas-cubes" [message]="'core.course.nocontentavailable' | translate" />
         }

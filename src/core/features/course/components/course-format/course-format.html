@@ -1,7 +1,7 @@
 <core-navbar-buttons slot="end" prepend>
-    <ion-button fill="clear" (click)="gotoCourseDownloads()" [ariaLabel]="'addon.storagemanager.coursedownloads' | translate">
+    <!-- <ion-button fill="clear" (click)="gotoCourseDownloads()" [ariaLabel]="'addon.storagemanager.coursedownloads' | translate">
         <ion-icon name="fas-cloud-arrow-down" slot="icon-only" aria-hidden="true" />
-    </ion-button>
+    </ion-button> -->
 </core-navbar-buttons>
 <core-dynamic-component [component]="courseFormatComponent" [data]="data">
     <!-- Default course format. -->
@@ -83,7 +83,8 @@
             </ion-fab-button>
         }
         @if (displayCourseIndex) {
-            <ion-fab-button (click)="openCourseIndex()" [attr.aria-label]="'core.course.courseindex' | translate" color="secondary">
+            <ion-fab-button class="core-course-index-button" (click)="openCourseIndex()"
+                [attr.aria-label]="'core.course.courseindex' | translate">
                 <ion-icon name="fas-list-ul" aria-hidden="true" />
             </ion-fab-button>
         }

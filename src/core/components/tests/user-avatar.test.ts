@@ -29,7 +29,7 @@ describe('CoreUserAvatarComponent', () => {
 
         const initials = nativeElement.querySelector('.userinitials');
         expect(initials).not.toBeNull();
-        expect(initials?.getAttribute('data-initials')?.trim()).toEqual('UNK');
+        expect(initials?.querySelector('ion-icon')?.getAttribute('name')).toEqual('fas-user');
     });
 
 });

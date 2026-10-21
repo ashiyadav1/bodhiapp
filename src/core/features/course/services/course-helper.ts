@@ -88,6 +88,7 @@ export class CoreCourseHelperProvider {
      * @param completionStatus List of completion status.
      * @param courseName Not used since 4.0
      * @param forCoursePage Whether the data will be used to render the course page.
+     * @param refreshSections Whether to fetch the sections again without using the cache.
      * @returns Whether the sections have content.
      */
     async addHandlerDataForModules(
@@ -96,7 +97,16 @@ export class CoreCourseHelperProvider {
         completionStatus?: Record<string, CoreCourseCompletionActivityStatus>,
         courseName?: string,
         forCoursePage = false,
+        refreshSections = false,
     ): Promise<{ hasContent: boolean; sections: CoreCourseSection[] }> {
+
+        if (refreshSections) {
+            await CoreCourse.invalidateSections(courseId);
+            sections = await CoreCourse.getSections(courseId, false, true, {
+                getFromCache: false,
+                emergencyCache: false,
+            });
+        }
 
         let hasContent = false;
 

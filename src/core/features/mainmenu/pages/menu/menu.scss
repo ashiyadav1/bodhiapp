@@ -59,6 +59,11 @@ core-user-menu-button {
 ion-tab-button {
     color: var(--color);
 
+    &:not(.tab-selected):hover,
+    &:not(.tab-selected):focus {
+        color: var(--color);
+    }
+
     &.tab-selected {
         color: var(--color-selected);
         background: var(--background-selected);

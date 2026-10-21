@@ -26,7 +26,7 @@
             </ion-item>
         }
 
-        @for (handler of handlers; track handler.name) {
+        <!-- @for (handler of handlers; track handler.name) {
             @if ('component' in handler) {
                 <core-dynamic-component [component]="handler.component" [data]="handler.componentData" />
             } @else {
@@ -51,7 +51,7 @@
                     }
                 </ion-item>
             }
-        }
+        } -->
 
         @for (item of customItems; track item) {
             <core-dynamic-component [component]="customMenuOverrideComponent" [data]="item">

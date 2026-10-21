@@ -109,12 +109,14 @@ export class CoreAlertsService {
      * @param options Alert options.
      * @returns Promise resolved if the user confirms and rejected with a canceled error if he cancels.
      */
-    async confirmDelete(message: string, options: Omit<AlertOptions, 'message'|'buttons'> = {}): Promise<void> {
+    async confirmDelete(message: string, options: CoreAlertsConfirmDeleteOptions = {}): Promise<void> {
         message = await CoreLang.filterMultilang(message);
 
+        const { okText, ...alertOptions } = options;
+
         await this.confirm(message, {
-            ...options,
-            okText: Translate.instant('core.delete'),
+            ...alertOptions,
+            okText: okText ?? Translate.instant('core.delete'),
             isDestructive: true,
         });
     }
@@ -485,6 +487,11 @@ export type CoreAlertsConfirmOptions = Omit<AlertOptions, 'message'|'buttons'> &
     cancelText?: string; // Text of the Cancel button. By default, 'Cancel'.
     isDestructive?: boolean; // Whether confirming is destructive (will remove data), so the button will have a danger color.
 };
+
+/**
+ * Options to pass to CoreAlerts.confirmDelete.
+ */
+export type CoreAlertsConfirmDeleteOptions = Omit<CoreAlertsConfirmOptions, 'isDestructive'>;
 
 /**
  * Options to pass to CoreAlerts.confirmDownloadSize.

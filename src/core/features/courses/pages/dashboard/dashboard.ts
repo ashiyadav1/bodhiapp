@@ -27,7 +27,6 @@ import { CoreAnalytics, CoreAnalyticsEventType } from '@services/analytics';
 import { Translate } from '@singletons';
 import { CorePromiseUtils } from '@static/promise-utils';
 import { CoreAlerts } from '@services/overlays/alerts';
-import { CoreBlockSideBlocksButtonComponent } from '../../../block/components/side-blocks-button/side-blocks-button';
 import { CoreSharedModule } from '@/core/shared.module';
 import { CORE_BLOCKS_DASHBOARD_FALLBACK_BLOCKS } from '@features/block/constants';
 import { Subscription } from 'rxjs';
@@ -41,7 +40,6 @@ import { Subscription } from 'rxjs';
     imports: [
         CoreSharedModule,
         CoreBlockComponent,
-        CoreBlockSideBlocksButtonComponent,
     ],
 })
 export default class CoreCoursesDashboardPage implements OnInit, OnDestroy {

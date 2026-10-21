@@ -1370,6 +1370,8 @@ export class CoreSitesProvider {
 
         const site = await this.getSite(siteId);
 
+        await CorePromiseUtils.ignoreErrors(this.deleteSiteStorage(site));
+
         await site.deleteDB();
 
         // Site DB deleted, now delete the app from the list of sites.
@@ -1743,12 +1745,17 @@ export class CoreSitesProvider {
         }
 
         const promises: Promise<unknown>[] = [];
-        const siteConfig = this.currentSite.getStoredConfig();
-        const siteId = this.currentSite.getId();
+        const site = this.currentSite;
+        const siteConfig = site.getStoredConfig();
+        const siteId = site.getId();
 
         this.currentSite = undefined;
         this.isLoginNavigationFinished = false;
         this.afterLoginNavigationQueue = [];
+
+        if (!options.removeAccount) {
+            await CorePromiseUtils.ignoreErrors(this.deleteSiteStorage(site));
+        }
 
         if (options.forceLogout || (siteConfig && siteConfig.tool_mobile_forcelogout === '1')) {
             promises.push(this.setSiteLoggedOut(siteId));
@@ -1763,6 +1770,35 @@ export class CoreSitesProvider {
         }
 
         CoreEvents.trigger(CoreEvents.LOGOUT, {}, siteId);
+    }
+
+    /**
+     * Delete cached content and downloaded files for a site.
+     *
+     * @param site Site to delete storage from.
+     */
+    protected async deleteSiteStorage(site: CoreSite): Promise<void> {
+        const siteId = site.getId();
+        const cleanSchemas = this.getSiteTableSchemasToClear(site);
+        const clearSiteTables = cleanSchemas.map((name) => site.getDb().deleteRecords(name));
+        const [
+            { CoreFilepool },
+            { CoreCourseDownloadStatusHelper },
+        ] = await Promise.all([
+            import('@services/filepool'),
+            import('@features/course/services/course-download-status-helper'),
+        ]);
+
+        await Promise.all([
+            ...clearSiteTables,
+            site.deleteFolder(),
+            CoreFilepool.clearAllPackagesStatus(siteId),
+            CoreFilepool.clearFilepool(siteId),
+            CoreFilepool.clearFilepoolQueue(siteId),
+            CoreCourseDownloadStatusHelper.clearAllCoursesStatus(siteId),
+        ]);
+
+        CoreEvents.trigger(CoreEvents.SITE_STORAGE_DELETED, {}, siteId);
     }
 
     /**

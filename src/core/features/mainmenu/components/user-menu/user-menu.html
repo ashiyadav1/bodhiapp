@@ -57,10 +57,10 @@
                 </core-dynamic-component>
             }
 
-            @for (handler of accountHandlers; track handler.name; let first = $first) {
+            <!-- @for (handler of accountHandlers; track handler.name; let first = $first) {
                 <ng-container
                     *ngTemplateOutlet="menuHandler; context: { handler, class: 'core-user-account-menu-handler', addSeparator: first }" />
-            }
+            } -->
 
             <ion-item button (click)="openPreferences($event)" [attr.aria-label]="'core.settings.preferences' | translate" [detail]="true"
                 class="core-user-menu-preferences core-user-menu-separator">

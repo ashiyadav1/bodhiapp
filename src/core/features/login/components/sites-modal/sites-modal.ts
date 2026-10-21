@@ -80,7 +80,9 @@ export class CoreLoginSitesModalComponent implements OnInit {
         siteName = await CoreFilter.formatText(siteName, { clean: true, singleLine: true, filter: false }, [], site.id);
 
         try {
-            await CoreAlerts.confirmDelete(Translate.instant('core.login.confirmdeletesite', { sitename: siteName }));
+            await CoreAlerts.confirmDelete(Translate.instant('core.login.confirmdeletesite', { sitename: siteName }), {
+                okText: Translate.instant('core.mainmenu.logout'),
+            });
         } catch {
             // User cancelled, stop.
             return;

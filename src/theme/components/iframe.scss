@@ -5,9 +5,86 @@ iframe {
     max-width: 100%;
     background-color: var(--ion-background-color);
 }
-
 .core-iframe-offline-disabled {
     display: none !important;
+}
+
+// The SCORM player in the site (player.php) never makes its layout smaller than 680px. Make the iframe tall enough to fit it
+// (plus the player header), otherwise in small screens (e.g. landscape) the player is cut and it cannot be scrolled.
+// The app scrolls the whole player instead.
+:is(page-addon-mod-scorm-online-player, page-addon-mod-scorm-player) core-iframe iframe {
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0;
+    min-height: 0;
+    max-width: 100%;
+}
+
+:is(page-addon-mod-scorm-online-player, page-addon-mod-scorm-player) core-iframe,
+:is(page-addon-mod-scorm-online-player, page-addon-mod-scorm-player) core-iframe .core-iframe-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    height: 100%;
+    max-height: 100%;
+    overflow: visible !important;
+}
+
+:is(page-addon-mod-scorm-online-player, page-addon-mod-scorm-player) core-iframe iframe {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+body.core-iframe-fullscreen :is(page-addon-mod-scorm-online-player, page-addon-mod-scorm-player) core-iframe iframe {
+    min-width: 100%;
+    max-width: 100%;
+    min-height: 0;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+body.core-iframe-fullscreen :is(page-addon-mod-scorm-online-player, page-addon-mod-scorm-player) core-iframe {
+    overflow: auto !important;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+}
+
+:is(page-addon-mod-scorm-online-player, page-addon-mod-scorm-player) ion-header ion-buttons[slot="end"] {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+
+    ion-button {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+}
+
+@media screen and (orientation: landscape) {
+    :is(page-addon-mod-scorm-online-player, page-addon-mod-scorm-player) core-iframe {
+        width: 100%;
+        max-width: 100%;
+        flex: 1 1 auto;
+        margin: 0px;
+    }
+
+    :is(page-addon-mod-scorm-online-player, page-addon-mod-scorm-player) core-iframe .core-iframe-container {
+        width: 100%;
+        max-width: 100%;
+        height: 100%;
+    }
+
+    body.core-iframe-fullscreen :is(page-addon-mod-scorm-online-player, page-addon-mod-scorm-player) core-iframe {
+        width: auto;
+        max-width: none;
+    }
+
+    :is(page-addon-mod-scorm-online-player, page-addon-mod-scorm-player) ion-content::part(scroll) {
+        overflow: auto !important;
+    }
 }
 
 // Iframe fullscreen manage.
@@ -44,6 +121,11 @@ body.core-iframe-fullscreen {
                 flex-direction: row-reverse;
                 ion-header {
                     width: calc(var(--core-header-toolbar-height) + var(--ion-safe-area-right));
+                    position: relative !important;
+                    z-index: 10000;
+                    display: flex !important;
+                    flex-direction: column;
+                    pointer-events: auto;
                     @include rtl() {
                         width: calc(var(--core-header-toolbar-height) + var(--ion-safe-area-left));
                     }
@@ -54,12 +136,20 @@ body.core-iframe-fullscreen {
                     ion-toolbar {
                         padding: 0px;
                         height: 100%;
+                        flex: 1;
+                        min-height: 0;
                         --padding-start: 0px;
                         --padding-end: 0px;
                     }
 
                     ion-buttons {
                         flex-direction: column-reverse;
+                        display: flex !important;
+                        align-items: center;
+                        justify-content: flex-start;
+                        height: 100%;
+                        visibility: visible !important;
+                        opacity: 1 !important;
                     }
                 }
             }
@@ -80,6 +170,7 @@ body.core-iframe-fullscreen {
     }
 
     // Hide collapsible footer on fullscreen iframes.
+    // Hide the SCORM navigation bar in fullscreen so it cannot reduce the video frame.
     [collapsible-footer] {
         opacity: 0 !important;
         height: 0 !important;

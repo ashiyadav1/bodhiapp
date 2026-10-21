@@ -13,11 +13,11 @@
 
 <ion-content>
     <ion-list class="list-item-limited-width">
-        <ion-item button class="ion-text-wrap" (click)="openLicensesPage()" [detail]="true">
+        <!-- <ion-item button class="ion-text-wrap" (click)="openLicensesPage()" [detail]="true">
             <ion-icon name="far-copyright" slot="start" aria-hidden="true" />
             <ion-label>{{ 'core.settings.opensourcelicenses' | translate }}</ion-label>
-        </ion-item>
-        @if (privacyPolicy) {
+        </ion-item> -->
+        <!-- @if (privacyPolicy) {
             <ion-item class="ion-text-wrap" button core-link [autoLogin]="false" [href]="privacyPolicy" [detail]="true"
                 detailIcon="open-outline">
                 <ion-icon name="fas-user-shield" slot="start" aria-hidden="true" />
@@ -30,7 +30,7 @@
                 <ion-icon name="fas-universal-access" slot="start" aria-hidden="true" />
                 <ion-label>{{ 'core.settings.accessstatement' | translate }}</ion-label>
             </ion-item>
-        }
+        } -->
         @if (currentSite && feedbackFormUrl && showSurvey) {
             <ion-item class="ion-text-wrap" button core-link [href]="feedbackFormUrl" [detail]="true" detailIcon="open-outline">
                 <ion-icon name="fas-bullhorn" slot="start" aria-hidden="true" />
@@ -50,7 +50,10 @@
 <ion-footer class="ion-no-border">
     <ion-item button class="ion-text-wrap ion-text-center core-about-deviceinfo" [detail]="false" (click)="openDeviceInfoPage()">
         <ion-label>
-            <p class="item-heading">{{ appName }} {{ versionName }}</p>
+            <p class="item-heading">
+                {{ appName }} {{ versionName }}
+                <img class="core-about-logo" src="assets/img/top_logo.png" [alt]="appName" />
+            </p>
         </ion-label>
     </ion-item>
 </ion-footer>

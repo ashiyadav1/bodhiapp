@@ -88,11 +88,12 @@ export default class CoreCourseContentsPage implements OnInit, OnDestroy, CoreRe
     protected completionObserver?: CoreEventObserver;
     protected manualCompletionObserver?: CoreEventObserver;
     protected syncObserver?: CoreEventObserver;
+    protected activityDataSentObserver?: CoreEventObserver;
     protected isDestroyed = false;
     protected modulesHaveCompletion = false;
     protected debouncedUpdateCachedCompletion?: () => void; // Update the cached completion after a certain time.
     protected changeDetectorRef = inject(ChangeDetectorRef);
-
+    protected retryTimeout?: ReturnType<typeof setTimeout>;
     @HostBinding('attr.data-course-id') protected get courseId(): number | null {
         return this.course?.id ?? null;
     }
@@ -134,7 +135,7 @@ export default class CoreCourseContentsPage implements OnInit, OnDestroy, CoreRe
                     false,
                 ));
             }
-        }, 30000);
+        }, 3000);
 
         this.initListeners();
 
@@ -142,6 +143,28 @@ export default class CoreCourseContentsPage implements OnInit, OnDestroy, CoreRe
 
         this.dataLoaded = true;
     }
+
+    protected async refreshAfterActivity(): Promise<void> {
+        if (this.isDestroyed) {
+            return;
+        }
+        console.log("refresh activity called kjdfgjksjg");
+        await this.showLoadingAndRefresh(false, true);
+
+        if (this.isDestroyed) {
+            return;
+        }
+        if (this.retryTimeout) {
+            clearTimeout(this.retryTimeout);
+        }
+
+        this.retryTimeout = setTimeout(() => {
+            if (!this.isDestroyed) {
+                void this.showLoadingAndRefresh(false, true);
+            }
+        }, 3000);
+    }
+
 
     /**
      * Init listeners.
@@ -153,11 +176,10 @@ export default class CoreCourseContentsPage implements OnInit, OnDestroy, CoreRe
             return; // Already initialized.
         }
 
-        // Check if the course format requires the view to be refreshed when completion changes.
-        const shouldRefresh = await CoreCourseFormatDelegate.shouldRefreshWhenCompletionChanges(this.course);
-        if (!shouldRefresh) {
-            return;
-        }
+        this.activityDataSentObserver = CoreEvents.on(CoreEvents.ACTIVITY_DATA_SENT, () => {
+            console.log("djsfgdhgsf djfgdhgsf djfgdhfs hjdgsfhdgsf jhfgdhgfdjs");
+            void this.refreshAfterActivity();
+        });
 
         this.completionObserver = CoreEvents.on(
             CoreEvents.COMPLETION_MODULE_VIEWED,
@@ -167,6 +189,12 @@ export default class CoreCourseContentsPage implements OnInit, OnDestroy, CoreRe
                 }
             },
         );
+
+        // Check if the course format requires other listeners when completion changes.
+        const shouldRefresh = await CoreCourseFormatDelegate.shouldRefreshWhenCompletionChanges(this.course);
+        if (!shouldRefresh) {
+            return;
+        }
 
         this.manualCompletionObserver = CoreEvents.on(CoreEvents.MANUAL_COMPLETION_CHANGED, (data) => {
             this.onCompletionChange(data.completion);
@@ -195,7 +223,7 @@ export default class CoreCourseContentsPage implements OnInit, OnDestroy, CoreRe
     protected async loadData(refresh?: boolean, sync?: boolean): Promise<void> {
         // First of all, get the course because the data might have changed.
         const result = await CorePromiseUtils.ignoreErrors(CoreCourseHelper.getCourse(this.course.id));
-
+        console.log(result);
         if (result) {
             if (this.course.id === result.course.id && 'displayname' in this.course && !('displayname' in result.course)) {
                 result.course.displayname = this.course.displayname;
@@ -234,6 +262,8 @@ export default class CoreCourseContentsPage implements OnInit, OnDestroy, CoreRe
     protected async loadSections(refresh?: boolean): Promise<void> {
         // Get all the sections.
         const sections = await CoreCourse.getSections(this.course.id, false, true);
+       console.log(sections);
+       console.log("previous sections");
         let modules: CoreCourseModuleData[] | undefined;
 
         if (refresh) {
@@ -272,9 +302,10 @@ export default class CoreCourseContentsPage implements OnInit, OnDestroy, CoreRe
             completionStatus,
             this.course.fullname,
             true,
+            true,
         );
         this.sections = result.sections;
-
+        console.log(this.sections);
         if (CoreCourseFormatDelegate.canViewAllSections(this.course)) {
             // Add a fake first section (all sections).
             this.sections.unshift(CoreCourseHelper.createAllSectionsSection());
@@ -417,7 +448,7 @@ export default class CoreCourseContentsPage implements OnInit, OnDestroy, CoreRe
         const content = this.content();
         const scrollElement = await CorePromiseUtils.ignoreErrors(content?.getScrollElement());
         const scrollTop = scrollElement?.scrollTop ?? -1;
-
+        console.log("inside load refresh activity called kjdfgjksjg");
         this.updatingData = true;
         this.changeDetectorRef.detectChanges();
 
@@ -455,6 +486,10 @@ export default class CoreCourseContentsPage implements OnInit, OnDestroy, CoreRe
         this.completionObserver?.off();
         this.manualCompletionObserver?.off();
         this.syncObserver?.off();
+        this.activityDataSentObserver?.off();
+        if (this.retryTimeout) {
+            clearTimeout(this.retryTimeout);
+        }
     }
 
     /**

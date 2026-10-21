@@ -24,7 +24,7 @@ $green:       #357a32 !default;
 $red:         #ca3120 !default;
 $yellow:      #f0ad4e !default;
 
-$brand-color: #f98012 !default;
+$brand-color: #167CC0 !default;
 
 $text-color:               $gray-900 !default;
 $text-color-rgb:           color-to-rgb-list($text-color) !default;
@@ -97,6 +97,7 @@ $core-course-hide-progress-on-list-items: false !default;
 $core-course-hide-thumb-on-cards: false !default;
 $core-course-thumb-on-cards-background: null !default;
 $core-course-hide-progress-on-cards: false !default;
+$core-course-index-selected-background: #28bf28 !default;
 
 // Configuration options for login page.
 $core-login-button-outline: false !default;
@@ -160,3 +161,12 @@ $calendar-event-category-colors: (
     user: $calendar-event-category-user,
     site: $calendar-event-category-site,
 ) !default;
+
+
+/* H5P fullscreen landscape scrolling */
+@media screen and (orientation: landscape) {
+    body.h5p-embed.h5p-resizing {
+        overflow: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+}

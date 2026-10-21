@@ -106,11 +106,11 @@
 
     --core-bottom-tabs-background: var(--white);
     --core-bottom-tabs-color: var(--ion-text-color-step-400);
-    --core-bottom-tabs-color-selected: var(--dark);
+    --core-bottom-tabs-color-selected: #{$brand-color};
     --core-bottom-tabs-background-selected: transparent;
     --core-bottom-tabs-badge-color: var(--primary);
     --core-bottom-tabs-badge-text-color: var(--primary-contrast);
-    --core-bottom-tabs-border-color-active: var(--primary);
+    --core-bottom-tabs-border-color-active: transparent;
 
     --core-link-color: var(--info);
 
@@ -143,7 +143,7 @@
     --core-tab-color-active: var(--dark);
     --core-tab-border-color-active: var(--primary);
 
-    --core-loading-spinner: var(--dark);
+    --core-loading-spinner: #{$brand-color};
 
     --core-progressbar-color: var(--primary);
     --core-progressbar-text-color: var(--medium);

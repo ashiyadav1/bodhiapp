@@ -232,6 +232,18 @@ class CoreFilepoolQueue {
     }
 
     /**
+     * Clear all files queued for a site.
+     *
+     * @param siteId The site ID.
+     */
+    async clearSite(siteId: string): Promise<void> {
+        await this.table.delete({ siteId });
+
+        Object.values(this.deferreds[siteId] ?? {}).forEach(deferred => deferred.reject(new CoreError('File removed from queue.')));
+        delete this.deferreds[siteId];
+    }
+
+    /**
      * Get the deferred promise for a file in the queue.
      *
      * @param siteId The site ID.
@@ -934,6 +946,19 @@ export class CoreFilepoolProvider {
         const filesLinksMap = CoreArray.toObjectMultiple(filesLinks, 'fileId');
 
         filesEntries.forEach(entry => this.notifyFileDeleted(siteId, entry.fileId, filesLinksMap[entry.fileId] || []));
+    }
+
+    /**
+     * Clear queued file downloads for a site.
+     *
+     * @param siteId ID of the site to clear.
+     * @returns Promise resolved when the filepool queue is cleared.
+     */
+    async clearFilepoolQueue(siteId: string): Promise<void> {
+        await this.queue.clearSite(siteId);
+
+        delete this.filePromises[siteId];
+        delete this.packagesPromises[siteId];
     }
 
     /**

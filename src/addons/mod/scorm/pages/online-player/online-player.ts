@@ -14,7 +14,8 @@
 
 import { Component, OnInit, OnDestroy, viewChild, effect } from '@angular/core';
 import { CoreNavigator } from '@services/navigator';
-import { CoreSitesReadingStrategy } from '@services/sites';
+import { CoreSites, CoreSitesReadingStrategy } from '@services/sites';
+import { CorePlatform } from '@services/platform';
 import { CoreEvents } from '@static/events';
 import {
     AddonModScorm,
@@ -91,7 +92,7 @@ export default class AddonModScormOnlinePlayerPage implements OnInit, OnDestroy 
             this.newAttempt = !!CoreNavigator.getRouteBooleanParam('newAttempt');
             this.organizationId = CoreNavigator.getRouteParam('organizationId');
             this.initialScoId = CoreNavigator.getRouteNumberParam('scoId');
-        } catch (error) {
+        } catch (error: any) {
             CoreAlerts.showError(error);
             CoreNavigator.back();
 
@@ -211,9 +212,68 @@ export default class AddonModScormOnlinePlayerPage implements OnInit, OnDestroy 
                 organization: this.organizationId,
                 newAttempt: this.newAttempt,
             });
-        } catch (error) {
+
+            if (CorePlatform.isIOS()) {
+                await this.openInAppBrowserIfNeeded();
+            }
+        } catch (error: any) {
             CoreAlerts.showError(error, { default: Translate.instant('addon.mod_scorm.errorgetscorm') });
         }
+    }
+
+    /**
+     * On iOS and Android, open the SCORM summary page (view.php) in an InAppBrowser instead of playing it in the iframe.
+     * The user taps "Enter" in that page and the player (player.php) opens inside the same InAppBrowser, so the session
+     * cookie is first-party and the "cookies are not enabled" error doesn't appear.
+     */
+    protected async openInAppBrowserIfNeeded(): Promise<void> {
+        if (!this.src || !CorePlatform.isIOS()) {
+            return;
+        }
+
+        const site = CoreSites.getCurrentSite();
+        if (!site) {
+            return;
+        }
+
+        // "inapp=1" lets the site apply CSS for the InAppBrowser (see Additional HTML on the site).
+        const baseUrl = this.moduleUrl || `${site.getURL()}/mod/scorm/view.php?id=${this.cmId}`;
+        const viewUrl = baseUrl + (baseUrl.includes('?') ? '&' : '?') + 'inapp=1';
+
+        const commonOptions = {
+            location: 'no',
+            toolbar: 'yes',
+            toolbartranslucent: 'no',
+            toolbarcolor: '#5b5858',
+            closebuttoncaption: Translate.instant('core.done'),
+            closebuttoncolor: '#007aff',
+            hidenavigationbuttons: 'no',
+        } as const;
+
+        // iOS: bottom toolbar. Android: toolbar is always on top, "toolbarposition" and "toolbartranslucent" are ignored.
+        const options = CorePlatform.isIOS()
+            ? { ...commonOptions, toolbar: 'yes', toolbarposition: 'bottom', toolbartranslucent: 'no' } as const
+            : { ...commonOptions, hideurlbar: 'yes', zoom: 'no' } as const;
+
+        // Hide the app's "Previous/Next activity" footer (it shows through the transparent toolbar) while the browser is open.
+        const className = 'scorm-iab-open';
+        document.body.classList.add(className);
+        const exitListener = CoreEvents.on(CoreEvents.IAB_EXIT, () => {
+            document.body.classList.remove(className);
+            exitListener.off();
+        });
+
+        // Auto login so the user doesn't have to type the password again in the browser.
+        try {
+            await site.openInAppWithAutoLogin(viewUrl, options);
+        } catch (error) {
+            document.body.classList.remove(className);
+            exitListener.off();
+
+            throw error;
+        }
+
+        CoreNavigator.back();
     }
 
     /**

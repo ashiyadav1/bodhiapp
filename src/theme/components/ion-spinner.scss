@@ -4,4 +4,12 @@ ion-spinner {
 
 ion-refresher {
     --ion-color-primary: var(--core-loading-spinner);
+    --ion-color-step-450: var(--core-loading-spinner);
+    --ion-background-color-step-450: var(--core-loading-spinner);
+    --ion-text-color: var(--core-loading-spinner);
+}
+
+ion-refresher.refresher-native ion-spinner,
+ion-refresher.refresher-native ion-icon {
+    color: var(--core-loading-spinner) !important;
 }

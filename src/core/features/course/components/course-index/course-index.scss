@@ -18,6 +18,9 @@ ion-item.item {
 
     &.item-current {
         --background: var(--primary-tint);
+        --background-activated: var(--primary-tint);
+        --background-focused: var(--primary-tint);
+        --background-hover: var(--primary-tint);
         --color: var(--gray-900);
         border: 0px;
         ion-label h2 {
@@ -34,22 +37,25 @@ ion-item.item {
 
         &.item-current {
             ion-icon.expandable-status-icon {
-                color: var(--primary-contrast);
+                color: var(--gray-900);
 
                 &:hover {
-                    background: var(--primary-shade);
-                    color: var(--gray-100);
+                    background: var(--primary);
+                    color: var(--gray-900);
                 }
             }
         }
 
         ion-icon.expandable-status-icon {
+            color: var(--gray-900);
             padding: 13px;
             margin: 3px;
             border-radius: 50%;
-            &:hover {
-                background: var(--secondary);
-            }
+        }
+
+        &:not(.item-current) ion-icon.expandable-status-icon:hover {
+            background: #{$core-course-index-selected-background};
+            color: var(--gray-900);
         }
 
         &.item-hightlighted ion-icon.expandable-status-icon {
@@ -68,6 +74,12 @@ ion-item.item {
 
         &.indented {
             margin-inline-start: 1rem;
+        }
+
+        &:hover {
+            ion-icon.completioninfo {
+                color: #{$core-course-index-selected-background} !important;
+            }
         }
 
     }
@@ -111,17 +123,20 @@ div.core-course-index-subsection {
     ion-item.item {
         &.item-current {
             --background: var(--primary-shade);
+            --background-activated: var(--primary-shade);
+            --background-focused: var(--primary-shade);
+            --background-hover: var(--primary-shade);
             --color: var(--white);
         }
 
         &.divider.section {
             ion-icon.expandable-status-icon {
-                color: var(--white);
+                color: var(--gray-900);
+            }
 
-                &:hover {
-                    background: var(--primary-tint);
-                    color: var(--gray-900);
-                }
+            &.item-current ion-icon.expandable-status-icon:hover {
+                background: var(--primary);
+                color: var(--gray-900);
             }
         }
     }

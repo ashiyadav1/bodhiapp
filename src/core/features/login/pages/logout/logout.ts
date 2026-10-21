@@ -87,8 +87,8 @@ export default class CoreLoginLogoutPage implements OnInit {
      */
     protected async navigateAfterLogout(siteId: string, redirectData: CoreRedirectPayload): Promise<void> {
         if (siteId === NO_SITE_ID) {
-            // No site to load now, just navigate.
-            await CoreNavigator.navigate(redirectData.redirectPath ?? '/login/sites', {
+            await CoreNavigator.navigate('/login/site', {
+                params: { showKeyboard: true },
                 ...redirectData.redirectOptions,
                 reset: true,
             });

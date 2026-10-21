@@ -1,6 +1,14 @@
 ion-back-button {
     --min-height: var(--a11y-sizing-minTargetSize);
     --min-width: var(--a11y-sizing-minTargetSize);
+    --padding-start: 0px;
+    --padding-end: 0px;
+    --icon-margin-start: 0px;
+    --icon-margin-end: 0px;
+
+    &::part(native) {
+        justify-content: center;
+    }
 
     &.md::part(text) {
         display: none;

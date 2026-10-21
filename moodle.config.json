@@ -1,6 +1,6 @@
 {
-    "app_id": "com.moodle.moodlemobile",
-    "appname": "Moodle Mobile",
+    "app_id": "com.bodhi.medlearn.uat",
+    "appname": "Bodhi MEDLEARN",
     "versioncode": 52100,
     "versionname": "5.2.1",
     "cache_update_frequency_usually": 420000,
@@ -95,6 +95,8 @@
     "privacypolicy": "https://moodle.net/moodle-app-privacy/",
     "notificoncolor": "#f98012",
     "enableanalytics": false,
+    "disabledFeatures": "CoreBlockDelegate_AddonBlockTimeline",
+    "removeaccountonlogout": true,
     "forceColorScheme": "",
     "forceLoginLogo": false,
     "showTopLogo": "hidden",

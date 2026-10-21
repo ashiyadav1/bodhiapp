@@ -14,6 +14,17 @@
     }
 }
 
+// Not fullscreen: don't limit the iframe height to the screen, otherwise the iframe is shrunk and its content
+:host(.core-iframe-full-height) {
+    .core-iframe-container {
+        max-height: none;
+    }
+
+    iframe {
+        flex-shrink: 0;
+    }
+}
+
 :host-context(.core-iframe-fullscreen) {
     position: absolute;
     top: 0px;
@@ -23,6 +34,17 @@
     width: 100%;
     height: 100%;
     z-index: 9999;
+    // Content taller than the screen (e.g. H5P, whose height is set to its content height) can be scrolled.
+    overflow-y: auto;
+
+    .core-iframe-container {
+        // Don't limit the height to the screen, otherwise the iframe is shrunk and its content is cut and cannot be scrolled.
+        max-height: none;
+    }
+
+    iframe {
+        flex-shrink: 0;
+    }
 
     .core-iframe-help {
         display: none;
