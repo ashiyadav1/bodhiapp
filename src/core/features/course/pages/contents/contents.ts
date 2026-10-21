@@ -88,12 +88,13 @@ export default class CoreCourseContentsPage implements OnInit, OnDestroy, CoreRe
     protected completionObserver?: CoreEventObserver;
     protected manualCompletionObserver?: CoreEventObserver;
     protected syncObserver?: CoreEventObserver;
-    protected activityDataSentObserver?: CoreEventObserver;
     protected isDestroyed = false;
     protected modulesHaveCompletion = false;
     protected debouncedUpdateCachedCompletion?: () => void; // Update the cached completion after a certain time.
     protected changeDetectorRef = inject(ChangeDetectorRef);
-    protected retryTimeout?: ReturnType<typeof setTimeout>;
+    protected viewedOnce = false;
+    // Completion already shown on an activity page. Course contents can lag behind that response.
+    protected knownCompletions = new Map<number, CoreCourseModuleCompletionData>();
     @HostBinding('attr.data-course-id') protected get courseId(): number | null {
         return this.course?.id ?? null;
     }
@@ -144,28 +145,6 @@ export default class CoreCourseContentsPage implements OnInit, OnDestroy, CoreRe
         this.dataLoaded = true;
     }
 
-    protected async refreshAfterActivity(): Promise<void> {
-        if (this.isDestroyed) {
-            return;
-        }
-        console.log("refresh activity called kjdfgjksjg");
-        await this.showLoadingAndRefresh(false, true);
-
-        if (this.isDestroyed) {
-            return;
-        }
-        if (this.retryTimeout) {
-            clearTimeout(this.retryTimeout);
-        }
-
-        this.retryTimeout = setTimeout(() => {
-            if (!this.isDestroyed) {
-                void this.showLoadingAndRefresh(false, true);
-            }
-        }, 3000);
-    }
-
-
     /**
      * Init listeners.
      *
@@ -176,16 +155,17 @@ export default class CoreCourseContentsPage implements OnInit, OnDestroy, CoreRe
             return; // Already initialized.
         }
 
-        this.activityDataSentObserver = CoreEvents.on(CoreEvents.ACTIVITY_DATA_SENT, () => {
-            console.log("djsfgdhgsf djfgdhgsf djfgdhfs hjdgsfhdgsf jhfgdhgfdjs");
-            void this.refreshAfterActivity();
-        });
-
         this.completionObserver = CoreEvents.on(
             CoreEvents.COMPLETION_MODULE_VIEWED,
             (data) => {
-                if (data && data.courseId == this.course.id) {
-                    this.showLoadingAndRefresh(true, false);
+                if (!data || data.courseId != this.course.id) {
+                    return;
+                }
+
+                if (data.completion) {
+                    this.rememberCompletion(data.completion);
+                    this.applyKnownCompletions(this.sections);
+                    this.changeDetectorRef.detectChanges();
                 }
             },
         );
@@ -223,7 +203,6 @@ export default class CoreCourseContentsPage implements OnInit, OnDestroy, CoreRe
     protected async loadData(refresh?: boolean, sync?: boolean): Promise<void> {
         // First of all, get the course because the data might have changed.
         const result = await CorePromiseUtils.ignoreErrors(CoreCourseHelper.getCourse(this.course.id));
-        console.log(result);
         if (result) {
             if (this.course.id === result.course.id && 'displayname' in this.course && !('displayname' in result.course)) {
                 result.course.displayname = this.course.displayname;
@@ -259,11 +238,14 @@ export default class CoreCourseContentsPage implements OnInit, OnDestroy, CoreRe
      * @param refresh If it's refreshing content.
      * @returns Promise resolved when done.
      */
-    protected async loadSections(refresh?: boolean): Promise<void> {
+    protected async loadSections(refresh?: boolean, bypassCache = false): Promise<void> {
         // Get all the sections.
-        const sections = await CoreCourse.getSections(this.course.id, false, true);
-       console.log(sections);
-       console.log("previous sections");
+        const sections = await CoreCourse.getSections(
+            this.course.id,
+            false,
+            true,
+            (refresh || bypassCache) ? { getFromCache: false, emergencyCache: false } : undefined,
+        );
         let modules: CoreCourseModuleData[] | undefined;
 
         if (refresh) {
@@ -302,10 +284,9 @@ export default class CoreCourseContentsPage implements OnInit, OnDestroy, CoreRe
             completionStatus,
             this.course.fullname,
             true,
-            true,
         );
+        this.applyKnownCompletions(result.sections);
         this.sections = result.sections;
-        console.log(this.sections);
         if (CoreCourseFormatDelegate.canViewAllSections(this.course)) {
             // Add a fake first section (all sections).
             this.sections.unshift(CoreCourseHelper.createAllSectionsSection());
@@ -448,7 +429,6 @@ export default class CoreCourseContentsPage implements OnInit, OnDestroy, CoreRe
         const content = this.content();
         const scrollElement = await CorePromiseUtils.ignoreErrors(content?.getScrollElement());
         const scrollTop = scrollElement?.scrollTop ?? -1;
-        console.log("inside load refresh activity called kjdfgjksjg");
         this.updatingData = true;
         this.changeDetectorRef.detectChanges();
 
@@ -486,10 +466,69 @@ export default class CoreCourseContentsPage implements OnInit, OnDestroy, CoreRe
         this.completionObserver?.off();
         this.manualCompletionObserver?.off();
         this.syncObserver?.off();
-        this.activityDataSentObserver?.off();
-        if (this.retryTimeout) {
-            clearTimeout(this.retryTimeout);
+    }
+
+    /**
+     * Keep the newest completion for a module so a later course-contents response cannot roll it back.
+     *
+     * @param completion Completion loaded by an activity page.
+     */
+    protected rememberCompletion(completion: CoreCourseModuleCompletionData): void {
+        const current = this.knownCompletions.get(completion.cmid);
+        const currentTime = current?.timecompleted ?? 0;
+        const nextTime = completion.timecompleted ?? 0;
+
+        if (!current || nextTime > currentTime || (nextTime === currentTime && completion.state !== current.state)) {
+            this.knownCompletions.set(completion.cmid, completion);
         }
+    }
+
+    /**
+     * Copy activity-page completion onto the course list when that list is older.
+     *
+     * @param sections Sections currently shown, or about to be shown.
+     */
+    protected applyKnownCompletions(sections?: CoreCourseSection[]): void {
+        if (!sections?.length || !this.knownCompletions.size) {
+            return;
+        }
+
+        for (const module of CoreCourse.getSectionsModules(sections)) {
+            const known = this.knownCompletions.get(module.id);
+            if (!known) {
+                continue;
+            }
+
+            const currentTime = module.completiondata?.timecompleted ?? 0;
+            const knownTime = known.timecompleted ?? 0;
+            const serverIsNewer = currentTime > knownTime;
+
+            if (serverIsNewer && module.completiondata) {
+                this.knownCompletions.set(module.id, module.completiondata);
+
+                continue;
+            }
+
+            if (knownTime > currentTime || known.state !== module.completiondata?.state) {
+                module.completiondata = {
+                    ...module.completiondata,
+                    ...known,
+                };
+            }
+        }
+    }
+
+    /**
+     * Reload course completion without hiding the course page.
+     */
+    protected async reloadCompletion(): Promise<void> {
+        if (this.isDestroyed || !this.dataLoaded) {
+            return;
+        }
+
+        await CorePromiseUtils.ignoreErrors(CoreCourse.invalidateSections(this.course.id));
+        await CorePromiseUtils.ignoreErrors(this.loadSections(false, true));
+        this.changeDetectorRef.detectChanges();
     }
 
     /**
@@ -497,6 +536,15 @@ export default class CoreCourseContentsPage implements OnInit, OnDestroy, CoreRe
      */
     ionViewDidEnter(): void {
         this.formatComponent()?.ionViewDidEnter();
+
+        // The first enter is the initial load. Later enters are returns from an activity.
+        if (!this.viewedOnce) {
+            this.viewedOnce = true;
+
+            return;
+        }
+
+        void this.reloadCompletion();
     }
 
     /**

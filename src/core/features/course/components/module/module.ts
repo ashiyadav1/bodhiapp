@@ -12,7 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, signal } from '@angular/core';
+import {
+    Component,
+    Input,
+    Output,
+    EventEmitter,
+    OnInit,
+    OnChanges,
+    OnDestroy,
+    SimpleChanges,
+    inject,
+    signal,
+    ChangeDetectorRef,
+} from '@angular/core';
 
 import { CoreSites } from '@services/sites';
 import {
@@ -36,6 +48,7 @@ import { CoreCourseModuleCompletionLegacyComponent } from '../module-completion-
 import { CoreSharedModule } from '@/core/shared.module';
 import { CoreCourseModuleHelper } from '@features/course/services/course-module-helper';
 import { CoreCourseDownloadStatusIcon } from '@features/course/constants';
+import { CorePromiseUtils } from '@static/promise-utils';
 
 /**
  * Component to display a module entry in a list of modules.
@@ -58,7 +71,7 @@ import { CoreCourseDownloadStatusIcon } from '@features/course/constants';
         '[class.indented]': 'indented',
     },
 })
-export class CoreCourseModuleComponent implements OnInit, OnDestroy {
+export class CoreCourseModuleComponent implements OnInit, OnChanges, OnDestroy {
 
     @Input({ required: true }) module!: CoreCourseModuleData; // The module to render.
     @Input() section?: CoreCourseSection; // The section the module belongs to.
@@ -83,12 +96,24 @@ export class CoreCourseModuleComponent implements OnInit, OnDestroy {
     protected prefetchHandler?: CoreCourseModulePrefetchHandler;
 
     protected moduleStatusObserver?: CoreEventObserver;
+    protected completionObserver?: CoreEventObserver;
     protected indented = false; // Whether the module is indented.
+    protected changeDetectorRef = inject(ChangeDetectorRef);
 
     /**
      * @inheritdoc
      */
     async ngOnInit(): Promise<void> {
+        // Apply completion as soon as the activity page has it. The course list otherwise keeps
+        // the completion it loaded when the course page was first opened.
+        this.completionObserver = CoreEvents.on(CoreEvents.COMPLETION_MODULE_VIEWED, (data) => {
+            if (!data?.cmId || data.cmId !== this.module.id) {
+                return;
+            }
+
+            void this.refreshCompletion(data.completion);
+        });
+
         const site = CoreSites.getRequiredCurrentSite();
 
         if (this.showIndentation && this.module.indent > 0) {
@@ -141,6 +166,47 @@ export class CoreCourseModuleComponent implements OnInit, OnDestroy {
                 this.updateModuleStatus(status);
             }, CoreSites.getCurrentSiteId());
         }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes.module && !changes.module.firstChange && this.showCompletion) {
+            void this.checkShowCompletion();
+        }
+    }
+
+    /**
+     * Replace this row's completion with the status the activity page is already showing.
+     *
+     * @param completion Completion just loaded by the activity. Fetched when the event has none.
+     */
+    protected async refreshCompletion(completion?: CoreCourseModuleCompletionData): Promise<void> {
+        let completiondata = completion?.cmid === this.module.id ? completion : undefined;
+
+        if (!completiondata) {
+            await CorePromiseUtils.ignoreErrors(CoreCourse.invalidateModule(this.module.id));
+
+            try {
+                const freshModule = await CoreCourse.getModule(this.module.id, this.module.course, undefined, false, true);
+                completiondata = freshModule.completiondata;
+            } catch {
+                return;
+            }
+        }
+
+        if (!completiondata) {
+            return;
+        }
+
+        this.module.completiondata = { ...completiondata };
+
+        if (this.showCompletion) {
+            await this.checkShowCompletion();
+        }
+
+        this.changeDetectorRef.detectChanges();
     }
 
     /**
@@ -217,6 +283,7 @@ export class CoreCourseModuleComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         this.module.handlerData?.onDestroy?.();
         this.moduleStatusObserver?.off();
+        this.completionObserver?.off();
     }
 
 }

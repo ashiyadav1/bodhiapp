@@ -408,6 +408,7 @@ export type CoreEventNotificationSoundChangedData = {
 export type CoreEventCompletionModuleViewedData = {
     courseId: number;
     cmId?: number;
+    completion?: CoreCourseModuleCompletionData; // Latest completion, when the activity has just loaded it.
 };
 
 /**

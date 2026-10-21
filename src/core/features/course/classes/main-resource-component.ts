@@ -403,19 +403,27 @@ export class CoreCourseModuleMainResourceComponent implements OnInit, OnDestroy,
     protected async fetchModule(): Promise<void> {
         const previousCompletion = this.module.completiondata;
 
-        const module = await CoreCourse.getModule(this.module.id, this.courseId);
+        const module = await CoreCourse.getModule(this.module.id, this.courseId, undefined, false, true);
 
         this.module.completiondata = await CoreCourseHelper.loadOfflineCompletionData(this.module.id, this.module.completiondata);
 
         this.module = module;
 
-        // @todo: Temporary fix to update course page completion. This should be refactored in MOBILE-4326.
-        if (previousCompletion && module.completiondata && previousCompletion.state !== module.completiondata.state) {
+        // Tell the course page to use this same completion. The activity page and the course page
+        // otherwise read different cached course-contents responses, so the course list stays stale.
+        const nextCompletion = module.completiondata;
+        const completionChanged = !!previousCompletion && !!nextCompletion && (
+            previousCompletion.state !== nextCompletion.state ||
+            !!previousCompletion.isoverallcomplete !== !!nextCompletion.isoverallcomplete
+        );
+
+        if (completionChanged) {
             await CorePromiseUtils.ignoreErrors(CoreCourse.invalidateSections(this.courseId));
 
             CoreEvents.trigger(CoreEvents.COMPLETION_MODULE_VIEWED, {
                 courseId: this.courseId,
-                cmId: module.completiondata.cmid,
+                cmId: nextCompletion.cmid,
+                completion: nextCompletion,
             });
         }
     }

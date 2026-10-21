@@ -898,7 +898,6 @@ export class CoreCourseProvider {
             updateFrequency: CoreCacheUpdateFrequency.RARELY,
             ...CoreSites.getReadingStrategyPreSets(options.readingStrategy),
         };
-        preSets.getFromCache = false;
 
         const params: CoreCourseGetContentsParams = {
             courseid: courseId,
