@@ -92,7 +92,6 @@ export default class CoreCourseContentsPage implements OnInit, OnDestroy, CoreRe
     protected modulesHaveCompletion = false;
     protected debouncedUpdateCachedCompletion?: () => void; // Update the cached completion after a certain time.
     protected changeDetectorRef = inject(ChangeDetectorRef);
-    protected viewedOnce = false;
     // Completion already shown on an activity page. Course contents can lag behind that response.
     protected knownCompletions = new Map<number, CoreCourseModuleCompletionData>();
     @HostBinding('attr.data-course-id') protected get courseId(): number | null {
@@ -519,32 +518,10 @@ export default class CoreCourseContentsPage implements OnInit, OnDestroy, CoreRe
     }
 
     /**
-     * Reload course completion without hiding the course page.
-     */
-    protected async reloadCompletion(): Promise<void> {
-        if (this.isDestroyed || !this.dataLoaded) {
-            return;
-        }
-
-        await CorePromiseUtils.ignoreErrors(CoreCourse.invalidateSections(this.course.id));
-        await CorePromiseUtils.ignoreErrors(this.loadSections(false, true));
-        this.changeDetectorRef.detectChanges();
-    }
-
-    /**
      * User entered the page.
      */
     ionViewDidEnter(): void {
         this.formatComponent()?.ionViewDidEnter();
-
-        // The first enter is the initial load. Later enters are returns from an activity.
-        if (!this.viewedOnce) {
-            this.viewedOnce = true;
-
-            return;
-        }
-
-        void this.reloadCompletion();
     }
 
     /**
