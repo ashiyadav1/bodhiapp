@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget android-versionCode="52100" id="com.bodhi.medlearn.uat" ios-CFBundleVersion="5.2.1.0" version="5.2.1" versionCode="52100" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    <name>BodhiMEDLEARN</name>
-    <description>BodhiMEDLEARN official app</description>
-    <author email="mobile@bodhi.com" href="http://bodhi.com">BodhiMEDLEARN team</author>
+<widget android-versionCode="14001" id="com.moodle.bodhihealth" ios-CFBundleVersion="1.4.0.1" version="1.4.1" versionCode="14001" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>Bodhi MEDLEARN</name>
+    <description>Bodhi MEDLEARN official app</description>
+    <author email="mobile@bodhi.com" href="http://bodhi.com">Bodhi MEDLEARN team</author>
     <content src="index.html" />
     <access origin="*" />
     <access launch-external="yes" origin="tel:*" />
@@ -112,7 +112,7 @@
             <true />
         </edit-config>
         <edit-config file="*-Info.plist" mode="merge" target="CFBundleShortVersionString">
-            <string>5.2.1</string>
+            <string>1.4.1</string>
         </edit-config>
         <edit-config file="*-Info.plist" mode="overwrite" target="CFBundleLocalizations">
             <array>

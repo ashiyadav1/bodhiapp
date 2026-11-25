@@ -9,7 +9,9 @@ const SWIFT_HEADER_FROM = [
   '#import "Moodle-Swift.h"',
   '#import "Bodhi_MEDLEARN_UAT-Swift.h"',
 ];
-const SWIFT_HEADER_TO = '#import "BodhiMEDLEARN-Swift.h"';
+// Xcode derives the Swift module/header name from the iOS target name
+// ("Bodhi MEDLEARN"), replacing the space with an underscore.
+const SWIFT_HEADER_TO = '#import "Bodhi_MEDLEARN-Swift.h"';
 const EXTENSIONS = new Set(['.m', '.h']);
 
 function findMatchingFiles(dir) {

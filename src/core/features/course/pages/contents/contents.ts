@@ -156,7 +156,7 @@ export default class CoreCourseContentsPage implements OnInit, OnDestroy, CoreRe
 
         this.completionObserver = CoreEvents.on(
             CoreEvents.COMPLETION_MODULE_VIEWED,
-            (data) => {
+            async (data) => {
                 if (!data || data.courseId != this.course.id) {
                     return;
                 }
@@ -165,6 +165,8 @@ export default class CoreCourseContentsPage implements OnInit, OnDestroy, CoreRe
                     this.rememberCompletion(data.completion);
                     this.applyKnownCompletions(this.sections);
                     this.changeDetectorRef.detectChanges();
+
+                    await this.showLoadingAndRefresh(false, true);
                 }
             },
         );
@@ -515,6 +517,7 @@ export default class CoreCourseContentsPage implements OnInit, OnDestroy, CoreRe
                 };
             }
         }
+
     }
 
     /**
